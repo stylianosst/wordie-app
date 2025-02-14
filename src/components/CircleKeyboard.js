@@ -1,13 +1,26 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { Context as KeyboardContext } from '../context/KeyBoardContext';
 
 const CircleKeyboard = ({ keys: initialKeys }) => {
   const [keys, setKeys] = useState(initialKeys);
-  const { state, updateKeyboardData } = useContext(KeyboardContext);
-  const handleKeyPress = (key) => {
-    updateKeyboardData(key);
+  const [clickedKeys, setClickedKeys] = useState([]);
+  const { state, updateKeyboardData, clearKeyboardData } = useContext(KeyboardContext);
+
+  useEffect(() => {
+    if (state.keyboardData === "") {
+      setClickedKeys([]);
+    } else{
+      console.log(`Keyboard Data: ${state.keyboardData}`);
+    }
+  }, [state.keyboardData]);
+
+  const handleKeyPress = (key, index) => {
+    if (!clickedKeys.includes(index)) {
+      updateKeyboardData(key);
+      setClickedKeys([...clickedKeys, index]);
+    }
   };
 
   const shuffleLetters = () => {
@@ -19,13 +32,13 @@ const CircleKeyboard = ({ keys: initialKeys }) => {
     <View style={styles.circle}>
       {keys && keys.map((key, index) => (
         <TouchableOpacity
-          onTouchStart={() => { console.log('onTouchStart') }}
           key={index}
           style={[
             styles.key,
             {
               width: keys.length < 7 ? 50 : 40,
               height: keys.length < 7 ? 50 : 40,
+              backgroundColor: clickedKeys.includes(index) ? '#7e7e7e' : '#f0f0f0',
               transform: [
                 { rotate: `${(index * 360) / keys.length}deg` },
                 { translateY: -70 },
@@ -33,7 +46,7 @@ const CircleKeyboard = ({ keys: initialKeys }) => {
               ],
             },
           ]}
-          onPress={() => handleKeyPress(key)}
+          onPress={() => handleKeyPress(key, index)}
         >
           <Text style={styles.keyText}>{key}</Text>
         </TouchableOpacity>
@@ -67,7 +80,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
   },
   keyText: {
     fontSize: 18,

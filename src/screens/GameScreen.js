@@ -12,7 +12,7 @@ import styles from '../styles/GameScreenStyles';
 const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pictures-beautfiul-places-to-photograph-santorini-oia.jpg' };
 
 const GameScreen = ({ navigation }) => {
-    const { state, clearKeayboardData } = useContext(KeyboardContext);
+    const { state, clearKeyboardData } = useContext(KeyboardContext);
     const { state: authState, updateUserInfo } = useContext(AuthContext);
     const { state: crosswordState, getCrossword, updateCrossword, clearCrossword, revealLetter } = useContext(CrosswordContext);
     let { keyboardData } = state;
@@ -113,7 +113,6 @@ const GameScreen = ({ navigation }) => {
                 update = true;
             }
             if (update) {
-                clearKeayboardData();
                 crosswordState.crosswordData.info.time = elapsedTime;
                 let response = await updateCrossword(crosswordState.crosswordData);
 
@@ -134,6 +133,7 @@ const GameScreen = ({ navigation }) => {
                     triggerRefresh();
                     console.log('Refresh triggered');
                 }
+                clearKeyboardData();
             }
         }
     };
@@ -269,7 +269,7 @@ const GameScreen = ({ navigation }) => {
                                 {keyboardData ? keyboardData : "Επιλέξτε γράμμα"}
                             </Text>
                         </View>
-                        <CircleIcon style={styles.delete} icon="delete" onPress={clearKeayboardData} />
+                        <CircleIcon style={styles.delete} icon="delete" onPress={clearKeyboardData} />
                     </View>
                     <CircleIcon style={styles.lightbulb} icon="lightbulb" onPress={() => triggerRevealLetter(crosswordState.crosswordData)} />
                     <CircleKeyboard keys={keys}>

@@ -11,7 +11,7 @@ const keyboardReducer = (state, action) => {
   }
 };
 
-const clearKeayboardData = (dispatch) => () => {
+const clearKeyboardData = (dispatch) => () => {
   dispatch({ type: "clear_keyboard_data" });
 };
 
@@ -21,6 +21,6 @@ const updateKeyboardData = (dispatch) => (data) => {
 
 export const { Context, Provider } = createDataContext(
   keyboardReducer,
-  { clearKeayboardData, updateKeyboardData },
+  { clearKeyboardData, updateKeyboardData },
   { keyboardData: "" }
 );
