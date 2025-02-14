@@ -39,15 +39,6 @@ const GameScreen = ({ navigation }) => {
     }, [refresh]);
 
     useEffect(() => {
-        const updateData = async () => {
-            if (!loading && keyboardData) {
-                await updateCrosswordWithKeyboardData();
-            }
-        };
-        updateData();
-    }, [keyboardData, loading]);
-
-    useEffect(() => {
         const startTimer = () => {
             const startTime = Date.now() - (crosswordState.crosswordData.info.time * 1000);
             setTimer(setInterval(() => {
@@ -98,7 +89,71 @@ const GameScreen = ({ navigation }) => {
         };
     }, [elapsedTime, crosswordState.crosswordData, timer]);
 
-    const updateCrosswordWithKeyboardData = async () => {
+    const resetTimer = () => {
+        if (timer) {
+            clearInterval(timer);
+            setTimer(null);
+        }
+        setElapsedTime(0);
+    };
+
+    const triggerRefresh = () => {
+        setLoading(true);
+        setTimeout(() => {
+            console.log('triggerRefresh called');
+            setRefresh(prev => !prev);
+        }, 200);
+    };
+
+    const triggerRevealLetter = async (crosswordData) => {
+        try {
+            Alert.alert(
+                'Αποκάλυψη Γράμματος',
+                'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
+                [
+                    { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
+                    {
+                        text: 'ΝΑΙ', onPress: async () => {
+                            let result = await revealLetter(crosswordData);
+                            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                            if (!result.helped) {
+                                alert('Χρειάζεστε 100 πόντους');
+                            } else {
+                                await updateUserInfo();
+                                console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                            }
+                        }
+                    },
+                ],
+                { cancelable: false }
+            );
+        } catch (error) {
+            console.error('Error revealing letter:', error);
+        }
+    };
+
+    const showModal = () => {
+        setModalVisible(true);
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.ease,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const hideModal = () => {
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 1000,
+            easing: Easing.ease,
+            useNativeDriver: true,
+        }).start(() => {
+            setModalVisible(false);
+        });
+    };
+
+    const checkWordMatch = async () => {
         for (const word of crosswordState.crosswordData.words) {
             let update = false;
             if (word.text === keyboardData && (!word.found && word.placed)) {
@@ -137,71 +192,6 @@ const GameScreen = ({ navigation }) => {
             }
         }
     };
-    const resetTimer = () => {
-        if (timer) {
-            clearInterval(timer);
-            setTimer(null);
-        }
-        setElapsedTime(0);
-    };
-
-
-    const triggerRefresh = () => {
-        setLoading(true);
-        setTimeout(() => {
-            console.log('triggerRefresh called');
-            setRefresh(prev => !prev);
-        }, 200);
-    };
-
-    const triggerRevealLetter = async (crosswordData) => {
-        try {
-            Alert.alert(
-                'Αποκάλυψη Γράμματος',
-                'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
-                [
-                    { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
-                    {
-                        text: 'ΝΑΙ', onPress: async () => {
-                            let result = await revealLetter(crosswordData);
-                            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
-                            if (!result.helped) {
-                                alert('Χρειάζεστε 100 πόντους');
-                            } else {
-                                await updateUserInfo();
-                                console.log(`Updated authState is ${JSON.stringify(authState)}`);
-                            }
-                        }
-                    },
-                ],
-                { cancelable: false }
-            );
-        } catch (error) {
-            console.error('Error revealing letter:', error);
-        }
-    };
-
-    const showModal = () => {
-        // await updateUserInfo();
-        setModalVisible(true);
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 1000,
-            easing: Easing.ease,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const hideModal = () => {
-        Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 1000,
-            easing: Easing.ease,
-            useNativeDriver: true,
-        }).start(() => {
-            setModalVisible(false);
-        });
-    };
 
     if (loading) {
         return (
@@ -235,9 +225,7 @@ const GameScreen = ({ navigation }) => {
     return (
         <SafeAreaProvider forceInset={{ top: 'always' }}>
             <ImageBackground
-                // source={require('../../assets/santorini.png')}
                 source={require('../../assets/santorini2.png')}
-                // source={image}
                 style={styles.image}>
                 {/* <PointsLayout style={styles.points} icon="star" points={authState.info.points} /> */}
                 <PointsLayout style={styles.points} icon="star" points={100} />
@@ -269,6 +257,9 @@ const GameScreen = ({ navigation }) => {
                                 {keyboardData ? keyboardData : "Επιλέξτε γράμμα"}
                             </Text>
                         </View>
+                        {state.keyboardData && state.keyboardData.length >= 3 && (
+                        <CircleIcon style={styles.delete} icon="search" onPress={checkWordMatch} />
+                    )}
                         <CircleIcon style={styles.delete} icon="delete" onPress={clearKeyboardData} />
                     </View>
                     <CircleIcon style={styles.lightbulb} icon="lightbulb" onPress={() => triggerRevealLetter(crosswordState.crosswordData)} />
@@ -344,33 +335,4 @@ const updateGridWithFoundWords = (grid, words) => {
         }
     });
 };
-
-const modalStyles = StyleSheet.create({
-    modal: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalText: {
-        fontSize: 18,
-        marginBottom: 20,
-    },
-    modalButton: {
-        fontSize: 16,
-        color: 'blue',
-    },
-});
-
 export default GameScreen;

@@ -11,7 +11,7 @@ const CircleKeyboard = ({ keys: initialKeys }) => {
   useEffect(() => {
     if (state.keyboardData === "") {
       setClickedKeys([]);
-    } else{
+    } else {
       console.log(`Keyboard Data: ${state.keyboardData}`);
     }
   }, [state.keyboardData]);
