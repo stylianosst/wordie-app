@@ -13,7 +13,7 @@ const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pict
 
 const GameScreen = ({ navigation }) => {
     const { state, clearKeyboardData } = useContext(KeyboardContext);
-    const { state: authState, updateUserInfo } = useContext(AuthContext);
+    const { state: authState, updateUserInfo, getPlayerInfo } = useContext(AuthContext);
     const { state: crosswordState, getCrossword, updateCrossword, clearCrossword, revealLetter } = useContext(CrosswordContext);
     let { keyboardData } = state;
     const [loading, setLoading] = useState(true);
@@ -24,7 +24,12 @@ const GameScreen = ({ navigation }) => {
     const [isModalVisible, setModalVisible] = useState(false);
     const [levelInfo, setLevelInfo] = useState(null);
     const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
+    console.log(`authState is ${JSON.stringify(authState)}`);
 
+    useEffect(() => {
+        console.log('useEffect called in SettingsScreen');
+        getPlayerInfo();
+    }, [authState]);
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -227,8 +232,8 @@ const GameScreen = ({ navigation }) => {
             <ImageBackground
                 source={require('../../assets/santorini2.png')}
                 style={styles.image}>
-                {/* <PointsLayout style={styles.points} icon="star" points={authState.info.points} /> */}
-                <PointsLayout style={styles.points} icon="star" points={100} />
+                <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
+                {/* <PointsLayout style={styles.points} icon="star" points={100} /> */}
                 <CircleIcon style={styles.settings} icon="settings" onPress={() => navigation.navigate('Settings')} />
                 <View style={styles.wordContainer}>
                     {
@@ -258,8 +263,8 @@ const GameScreen = ({ navigation }) => {
                             </Text>
                         </View>
                         {state.keyboardData && state.keyboardData.length >= 3 && (
-                        <CircleIcon style={styles.delete} icon="search" onPress={checkWordMatch} />
-                    )}
+                            <CircleIcon style={styles.delete} icon="search" onPress={checkWordMatch} />
+                        )}
                         <CircleIcon style={styles.delete} icon="delete" onPress={clearKeyboardData} />
                     </View>
                     <CircleIcon style={styles.lightbulb} icon="lightbulb" onPress={() => triggerRevealLetter(crosswordState.crosswordData)} />
