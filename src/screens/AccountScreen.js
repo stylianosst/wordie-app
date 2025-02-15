@@ -43,11 +43,11 @@ const AccountScreen = ({ navigation }) => {
         </View>
       </View>
       <Spacer>
-        <Button
+        {/* <Button
           onPress={signout}
           color="#8A2BE2"
           title="ΑΠΟΣΥΝΔΕΣΗ"
-        />
+        /> */}
       </Spacer>
       <CircleIcon style={styles.back} icon="keyboard-arrow-left" onPress={() => navigation.navigate('Landing')} />
     </SafeAreaProvider>
