@@ -1,0 +1,19 @@
+open with project's folder with vs code
+
+open terminal run ngrok http 3000
+open terminal change directory to words and run npm start
+open terminal change directory to words-server and run npm run dev
+
+npx expo export -p web/ npx expo serve
+mkdir windows-app
+cd windows-app
+npm init -y
+npm install electron electron-builder --save-dev
+npm start
+in html of exported web with remove defer from the script tag
+npm install -g electron-packager
+npx electron-packager . MyApp --platform=win32 --arch=x64 --out=dist --overwrite
+
+
+
+            
