@@ -3,21 +3,24 @@ import { Text, StyleSheet } from 'react-native';
 import { Button, Input } from 'react-native-elements';
 import Spacer from './Spacer';
 
-const AuthForm = ({ headerText, errorMessage, onSubmit, submitButtonText }) => {
+const AuthForm = ({ headerText, errorMessage, onSubmit, submitButtonText, clearErrorMessage }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   return (
     <>
       <Spacer>
-        <Text h2
-          style={{ textAlign: 'center' }}>
-          {headerText}</Text>
+        <Text h2 style={{ textAlign: 'center' }}>
+          {headerText}
+        </Text>
       </Spacer>
       <Input
         label="Email"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => {
+          setEmail(text);
+          clearErrorMessage();
+        }}
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -26,7 +29,10 @@ const AuthForm = ({ headerText, errorMessage, onSubmit, submitButtonText }) => {
         secureTextEntry
         label="Password"
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => {
+          setPassword(text);
+          clearErrorMessage();
+        }}
         autoCapitalize="none"
         autoCorrect={false}
       />
@@ -49,8 +55,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'red',
     marginLeft: 15,
-    marginTop: 15
-  }
+    marginTop: 15,
+  },
 });
 
 export default AuthForm;

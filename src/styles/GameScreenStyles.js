@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
         // elevation: 5, // For Android shadow
     },
     cell: {
-        width: 26,
-        height: 26,
+        width: 25,
+        height: 25,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     },
     timerContainer: {
         position: 'absolute',
-        bottom: 10,
+        bottom: 40,
         left: 10,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         padding: 10,

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing } from 'react-native';
-import { SafeAreaView } from 'react-navigation';
+import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing, Alert } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CircleKeyboard from '../components/CircleKeyboard';
 import { Context as KeyboardContext } from '../context/KeyBoardContext';
 import { Context as CrosswordContext } from '../context/CrosswordContext';
@@ -122,11 +122,17 @@ const GameScreen = ({ navigation }) => {
                     setLevelInfo(response.levelInfo); // <-- Store levelInfo in state
                 }
                 if (crosswordState.crosswordData.words.filter(word => word.placed).every(word => word.found)) {
+                    console.log('All words found');
                     showModal();
+                    console.log('Modal shown');
                     resetTimer();
+                    console.log('Timer reset');
                     clearCrossword();
+                    console.log('Crossword cleared');
                     updateUserInfo();
+                    console.log('User info updated');
                     triggerRefresh();
+                    console.log('Refresh triggered');
                 }
             }
         }
@@ -143,20 +149,33 @@ const GameScreen = ({ navigation }) => {
     const triggerRefresh = () => {
         setLoading(true);
         setTimeout(() => {
+            console.log('triggerRefresh called');
             setRefresh(prev => !prev);
         }, 200);
     };
 
     const triggerRevealLetter = async (crosswordData) => {
         try {
-            let result = await revealLetter(crosswordData);
-            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
-            if (!result.helped) {
-                alert('Χρειάζεστε 100 πόντους');
-            } else {
-                await updateUserInfo();
-                console.log(`Updated authState is ${JSON.stringify(authState)}`);
-            }
+            Alert.alert(
+                'Αποκάλυψη Γράμματος',
+                'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
+                [
+                    { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
+                    {
+                        text: 'ΝΑΙ', onPress: async () => {
+                            let result = await revealLetter(crosswordData);
+                            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                            if (!result.helped) {
+                                alert('Χρειάζεστε 100 πόντους');
+                            } else {
+                                await updateUserInfo();
+                                console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                            }
+                        }
+                    },
+                ],
+                { cancelable: false }
+            );
         } catch (error) {
             console.error('Error revealing letter:', error);
         }
@@ -185,7 +204,16 @@ const GameScreen = ({ navigation }) => {
     };
 
     if (loading) {
-        return <View><Text>Loading...</Text></View>;
+        return (
+            <SafeAreaProvider forceInset={{ top: 'always' }}>
+                <ImageBackground
+                    source={image}
+                    style={styles.image}>
+                    <View style={styles.wordContainer}>
+                        <Text style={styles.loading}>Loading...</Text>
+                    </View>
+                </ImageBackground>
+            </SafeAreaProvider>);
     }
 
     if (error) {
@@ -205,11 +233,12 @@ const GameScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView forceInset={{ top: 'always' }}>
+        <SafeAreaProvider forceInset={{ top: 'always' }}>
             <ImageBackground
                 source={image}
                 style={styles.image}>
-                <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
+                {/* <PointsLayout style={styles.points} icon="star" points={authState.info.points} /> */}
+                <PointsLayout style={styles.points} icon="star" points={100} />
                 <CircleIcon style={styles.settings} icon="settings" onPress={() => navigation.navigate('Settings')} />
                 <View style={styles.wordContainer}>
                     {
@@ -259,7 +288,7 @@ const GameScreen = ({ navigation }) => {
                     <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
                 </View>
             </ImageBackground>
-        </SafeAreaView>
+        </SafeAreaProvider>
     );
 };
 

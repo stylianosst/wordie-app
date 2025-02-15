@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useContext, useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AuthForm from '../components/AuthForm';
 import NavLink from '../components/NavLink';
@@ -7,11 +7,11 @@ import { Context } from '../context/AuthContext';
 
 const SigninScreen = () => {
   const { state, signin, clearErrorMessage } = useContext(Context);
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     clearErrorMessage();
-  //   }, [])
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      clearErrorMessage();
+    }, [])
+  );
   return (
     <View style={styles.container}>
       <AuthForm
@@ -19,6 +19,7 @@ const SigninScreen = () => {
         errorMessage={state.errorMessage}
         onSubmit={signin}
         submitButtonText="Σύνδεση"
+        clearErrorMessage={clearErrorMessage}
       />
       <NavLink
         text="Δεν έχετε λογαριασμό; Εγγραφείτε εδώ."

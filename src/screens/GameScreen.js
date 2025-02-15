@@ -14,7 +14,7 @@ const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pict
 const GameScreen = ({ navigation }) => {
     const { state, clearKeyboardData } = useContext(KeyboardContext);
     const { state: authState, updateUserInfo, getPlayerInfo } = useContext(AuthContext);
-    const { state: crosswordState, getCrossword, updateCrossword, clearCrossword, revealLetter } = useContext(CrosswordContext);
+    const { state: crosswordState, getCrossword, updateCrossword, updateCrosswordHelp, clearCrossword, revealLetter } = useContext(CrosswordContext);
     let { keyboardData } = state;
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,13 +23,17 @@ const GameScreen = ({ navigation }) => {
     const [timer, setTimer] = useState(0);
     const [isModalVisible, setModalVisible] = useState(false);
     const [levelInfo, setLevelInfo] = useState(null);
-    const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
-    console.log(`authState is ${JSON.stringify(authState)}`);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [playerInfoRefresh, setPlayerInfoRefresh] = useState(false);
 
     useEffect(() => {
-        console.log('useEffect called in SettingsScreen');
+        console.log('useEffect called in GameScreen');
         getPlayerInfo();
-    }, [authState]);
+    }, [playerInfoRefresh]);
+
+    const triggerPlayerInfoRefresh = () => {
+        setPlayerInfoRefresh(prev => !prev);
+    };
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -104,6 +108,7 @@ const GameScreen = ({ navigation }) => {
 
     const triggerRefresh = () => {
         setLoading(true);
+        clearCrossword();
         setTimeout(() => {
             console.log('triggerRefresh called');
             setRefresh(prev => !prev);
@@ -125,6 +130,9 @@ const GameScreen = ({ navigation }) => {
                                 alert('Χρειάζεστε 100 πόντους');
                             } else {
                                 await updateUserInfo();
+                                if (authState.info) {
+                                    await updateCrosswordHelp(crosswordData);
+                                }
                                 console.log(`Updated authState is ${JSON.stringify(authState)}`);
                             }
                         }
@@ -175,10 +183,10 @@ const GameScreen = ({ navigation }) => {
             if (update) {
                 crosswordState.crosswordData.info.time = elapsedTime;
                 let response = await updateCrossword(crosswordState.crosswordData);
-
+                console.log(`updateCrossword response is ${JSON.stringify(response)}`);
                 if (response && response.levelInfo) {
                     crosswordState.crosswordData.info.time = response.crossword.info.time;
-                    setLevelInfo(response.levelInfo); // <-- Store levelInfo in state
+                    setLevelInfo(response.levelInfo);
                 }
                 if (crosswordState.crosswordData.words.filter(word => word.placed).every(word => word.found)) {
                     console.log('All words found');
@@ -186,13 +194,12 @@ const GameScreen = ({ navigation }) => {
                     console.log('Modal shown');
                     resetTimer();
                     console.log('Timer reset');
-                    clearCrossword();
-                    console.log('Crossword cleared');
                     updateUserInfo();
                     console.log('User info updated');
                     triggerRefresh();
                     console.log('Refresh triggered');
                 }
+                triggerPlayerInfoRefresh();
                 clearKeyboardData();
             }
         }
@@ -205,7 +212,7 @@ const GameScreen = ({ navigation }) => {
                     source={require('../../assets/santorini2.png')}
                     style={styles.image}>
                     <View style={styles.wordContainer}>
-                        <Text style={styles.loading}>Loading...</Text>
+                        <Text style={styles.loading}>Παρακαλώ περιμένετε, φτιάχνουμε ένα σταυρόλεξο ακριβώς στα μέτρα σας</Text>
                     </View>
                 </ImageBackground>
             </SafeAreaProvider>);
@@ -227,33 +234,34 @@ const GameScreen = ({ navigation }) => {
         return `${minutes} λεπτά και ${remainingSeconds} δευτερόλεπτα`;
     };
 
+    const formatTime2 = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes} min ${remainingSeconds} sec`;
+    };
+
     return (
         <SafeAreaProvider forceInset={{ top: 'always' }}>
             <ImageBackground
                 source={require('../../assets/santorini2.png')}
                 style={styles.image}>
-                <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
-                {/* <PointsLayout style={styles.points} icon="star" points={100} /> */}
+                {authState.info && (
+                    <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
+                )}
                 <CircleIcon style={styles.settings} icon="settings" onPress={() => navigation.navigate('Settings')} />
                 <View style={styles.wordContainer}>
-                    {
-                        grid.map((rowData, index) => {
-                            return (
-                                <View key={index} style={styles.wordRow}>
-                                    {
-                                        rowData.map((cellData, cellIndex) => {
-                                            const borderStyle = cellData ? { borderWidth: 2, borderColor: 'white', borderRadius: 5, opacity: 0.9 } : { opacity: 0.9 };
-                                            return (
-                                                <View key={cellIndex} style={[styles.cell, borderStyle]}>
-                                                    <Text style={styles.text}>{cellData}</Text>
-                                                </View>
-                                            );
-                                        })
-                                    }
-                                </View>
-                            );
-                        })
-                    }
+                    {grid && grid.map((rowData, index) => (
+                        <View key={index} style={styles.wordRow}>
+                            {rowData.map((cellData, cellIndex) => {
+                                const borderStyle = cellData ? { borderWidth: 2, borderColor: 'white', borderRadius: 5, opacity: 0.9 } : { opacity: 0.9 };
+                                return (
+                                    <View key={cellIndex} style={[styles.cell, borderStyle]}>
+                                        <Text style={styles.text}>{cellData}</Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    ))}
                 </View>
                 <View style={styles.circleView}>
                     <View style={styles.deleteContainer}>
@@ -285,7 +293,7 @@ const GameScreen = ({ navigation }) => {
                     </Animated.View>
                 )}
                 <View style={styles.timerContainer}>
-                    <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+                    <Text style={styles.timerText}>{formatTime2(elapsedTime)}</Text>
                 </View>
             </ImageBackground>
         </SafeAreaProvider>
@@ -340,4 +348,5 @@ const updateGridWithFoundWords = (grid, words) => {
         }
     });
 };
+
 export default GameScreen;

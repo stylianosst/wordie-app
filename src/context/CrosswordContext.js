@@ -11,6 +11,8 @@ const crosswordReducer = (state, action) => {
             return { crosswordData: {} };
         case "reveal_letter":
             return { crosswordData: action.payload };
+        case "update_crossword_help":
+            return { crosswordData: action.payload };
         default:
             return state;
     }
@@ -33,6 +35,17 @@ const updateCrossword = (dispatch) => async (crossword) => {
     try {
         const response = await axiosInstance.post("/updateCrossword", { data: crossword });
         dispatch({ type: "update_crossword", payload: crossword });
+        return response.data;
+    } catch (err) {
+        console.error("Failed to notify server:", err);
+        return null;
+    }
+};
+
+const updateCrosswordHelp = (dispatch) => async (crossword) => {
+    try {
+        const response = await axiosInstance.post("/updateCrosswordHelp", { data: crossword });
+        dispatch({ type: "update_crossword_help", payload: crossword });
         return response.data;
     } catch (err) {
         console.error("Failed to notify server:", err);
@@ -87,6 +100,6 @@ const checkIfHelped = (crossword, wordIndex, letterIndex) => {
 
 export const { Provider, Context } = createDataContext(
     crosswordReducer,
-    { getCrossword, updateCrossword, clearCrossword, revealLetter },
+    { getCrossword, updateCrossword, clearCrossword, revealLetter, updateCrosswordHelp },
     { crosswordData: {} }
 );

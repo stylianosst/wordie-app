@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Context as AuthContext } from '../context/AuthContext';
@@ -15,12 +15,12 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <NavigationEvents />
       <AuthForm
         headerText="Εγγραφή στο Wordie"
         errorMessage={state.errorMessage}
         submitButtonText="Εγγραφή"
         onSubmit={signup}
+        clearErrorMessage={clearErrorMessage}
       />
       <NavLink
         routeName="Signin"
