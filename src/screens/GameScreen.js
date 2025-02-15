@@ -118,34 +118,50 @@ const GameScreen = ({ navigation }) => {
 
     const triggerRevealLetter = async (crosswordData) => {
         try {
-            Alert.alert(
-                'Αποκάλυψη Γράμματος',
-                'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
-                [
-                    { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
-                    {
-                        text: 'ΝΑΙ', onPress: async () => {
-                            let result = await revealLetter(crosswordData);
-                            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
-                            if (!result.helped) {
-                                alert('Χρειάζεστε 100 πόντους');
-                            } else {
-                                await updateUserInfo();
-                                if (authState.info) {
-                                    await updateCrosswordHelp(crosswordData);
-                                }
-                                console.log(`Updated authState is ${JSON.stringify(authState)}`);
-                            }
+            if (Platform.OS === 'web') {
+                const confirm = window.confirm('Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ');
+                if (confirm) {
+                    let result = await revealLetter(crosswordData);
+                    console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                    if (!result.helped) {
+                        alert('Χρειάζεστε 100 πόντους');
+                    } else {
+                        await updateUserInfo();
+                        if (authState.info) {
+                            await updateCrosswordHelp(crosswordData);
                         }
-                    },
-                ],
-                { cancelable: false }
-            );
+                        console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                    }
+                }
+            } else {
+                Alert.alert(
+                    'Αποκάλυψη Γράμματος',
+                    'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
+                    [
+                        { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
+                        {
+                            text: 'ΝΑΙ', onPress: async () => {
+                                let result = await revealLetter(crosswordData);
+                                console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                                if (!result.helped) {
+                                    alert('Χρειάζεστε 100 πόντους');
+                                } else {
+                                    await updateUserInfo();
+                                    if (authState.info) {
+                                        await updateCrosswordHelp(crosswordData);
+                                    }
+                                    console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                                }
+                            }
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            }
         } catch (error) {
             console.error('Error revealing letter:', error);
         }
     };
-
     const showModal = () => {
         setModalVisible(true);
         Animated.timing(fadeAnim, {
