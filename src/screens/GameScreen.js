@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing, Alert } from 'react-native';
+import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing, Alert, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CircleKeyboard from '../components/CircleKeyboard';
 import { Context as KeyboardContext } from '../context/KeyBoardContext';
@@ -12,6 +12,7 @@ import styles from '../styles/GameScreenStyles';
 const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pictures-beautfiul-places-to-photograph-santorini-oia.jpg' };
 
 const GameScreen = ({ navigation }) => {
+    const isDesktop = Platform.OS === 'web';
     const { state, clearKeyboardData } = useContext(KeyboardContext);
     const { state: authState, updateUserInfo, getPlayerInfo } = useContext(AuthContext);
     const { state: crosswordState, getCrossword, updateCrossword, updateCrosswordHelp, clearCrossword, revealLetter } = useContext(CrosswordContext);
@@ -209,7 +210,7 @@ const GameScreen = ({ navigation }) => {
         return (
             <SafeAreaProvider forceInset={{ top: 'always' }}>
                 <ImageBackground
-                    source={require('../../assets/santorini2.png')}
+                    source={isDesktop ? require('../../assets/santorini2.png') : require('../../assets/santorini.png')}
                     style={styles.image}>
                     <View style={styles.wordContainer}>
                         <Text style={styles.loading}>Παρακαλώ περιμένετε, φτιάχνουμε ένα σταυρόλεξο ακριβώς στα μέτρα σας</Text>
@@ -243,7 +244,7 @@ const GameScreen = ({ navigation }) => {
     return (
         <SafeAreaProvider forceInset={{ top: 'always' }}>
             <ImageBackground
-                source={require('../../assets/santorini2.png')}
+                source={isDesktop ? require('../../assets/santorini2.png') : require('../../assets/santorini.png')}
                 style={styles.image}>
                 {authState.info && (
                     <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
