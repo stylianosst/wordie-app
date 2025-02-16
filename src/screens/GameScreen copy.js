@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing, Alert } from 'react-native';
+import { View, ImageBackground, TouchableOpacity, AppState, Text, StyleSheet, Animated, Easing, Alert, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CircleKeyboard from '../components/CircleKeyboard';
 import { Context as KeyboardContext } from '../context/KeyBoardContext';
@@ -8,13 +8,15 @@ import { Context as AuthContext } from '../context/AuthContext';
 import CircleIcon from '../components/CircleIcon';
 import PointsLayout from '../components/PointsLayout';
 import styles from '../styles/GameScreenStyles';
+import { levels } from '../services/lettersService';
 
 const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pictures-beautfiul-places-to-photograph-santorini-oia.jpg' };
 
 const GameScreen = ({ navigation }) => {
-    const { state, clearKeayboardData } = useContext(KeyboardContext);
-    const { state: authState, updateUserInfo } = useContext(AuthContext);
-    const { state: crosswordState, getCrossword, updateCrossword, clearCrossword, revealLetter } = useContext(CrosswordContext);
+    const isDesktop = Platform.OS === 'web';
+    const { state, clearKeyboardData } = useContext(KeyboardContext);
+    const { state: authState, updateUserInfo, getPlayerInfo } = useContext(AuthContext);
+    const { state: crosswordState, getCrossword, updateCrossword, updateCrosswordHelp, clearCrossword, revealLetter } = useContext(CrosswordContext);
     let { keyboardData } = state;
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,8 +25,17 @@ const GameScreen = ({ navigation }) => {
     const [timer, setTimer] = useState(0);
     const [isModalVisible, setModalVisible] = useState(false);
     const [levelInfo, setLevelInfo] = useState(null);
-    const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [playerInfoRefresh, setPlayerInfoRefresh] = useState(false);
 
+    useEffect(() => {
+        console.log('useEffect called in GameScreen');
+        getPlayerInfo();
+    }, [playerInfoRefresh]);
+
+    const triggerPlayerInfoRefresh = () => {
+        setPlayerInfoRefresh(prev => !prev);
+    };
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -37,15 +48,6 @@ const GameScreen = ({ navigation }) => {
         };
         fetchData();
     }, [refresh]);
-
-    useEffect(() => {
-        const updateData = async () => {
-            if (!loading && keyboardData) {
-                await updateCrosswordWithKeyboardData();
-            }
-        };
-        updateData();
-    }, [keyboardData, loading]);
 
     useEffect(() => {
         const startTimer = () => {
@@ -98,45 +100,6 @@ const GameScreen = ({ navigation }) => {
         };
     }, [elapsedTime, crosswordState.crosswordData, timer]);
 
-    const updateCrosswordWithKeyboardData = async () => {
-        for (const word of crosswordState.crosswordData.words) {
-            let update = false;
-            if (word.text === keyboardData && (!word.found && word.placed)) {
-                if (word.placed == true) {
-                    word.found = true;
-                    update = true;
-                }
-            }
-            if (word.text === keyboardData && !word.extraFound && !word.placed) {
-                alert('Επιπλέον λέξη βρέθηκε: ' + keyboardData);
-                word.extraFound = true;
-                update = true;
-            }
-            if (update) {
-                clearKeayboardData();
-                crosswordState.crosswordData.info.time = elapsedTime;
-                let response = await updateCrossword(crosswordState.crosswordData);
-
-                if (response && response.levelInfo) {
-                    crosswordState.crosswordData.info.time = response.crossword.info.time;
-                    setLevelInfo(response.levelInfo); // <-- Store levelInfo in state
-                }
-                if (crosswordState.crosswordData.words.filter(word => word.placed).every(word => word.found)) {
-                    console.log('All words found');
-                    showModal();
-                    console.log('Modal shown');
-                    resetTimer();
-                    console.log('Timer reset');
-                    clearCrossword();
-                    console.log('Crossword cleared');
-                    updateUserInfo();
-                    console.log('User info updated');
-                    triggerRefresh();
-                    console.log('Refresh triggered');
-                }
-            }
-        }
-    };
     const resetTimer = () => {
         if (timer) {
             clearInterval(timer);
@@ -145,9 +108,9 @@ const GameScreen = ({ navigation }) => {
         setElapsedTime(0);
     };
 
-
     const triggerRefresh = () => {
         setLoading(true);
+        clearCrossword();
         setTimeout(() => {
             console.log('triggerRefresh called');
             setRefresh(prev => !prev);
@@ -156,33 +119,51 @@ const GameScreen = ({ navigation }) => {
 
     const triggerRevealLetter = async (crosswordData) => {
         try {
-            Alert.alert(
-                'Αποκάλυψη Γράμματος',
-                'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
-                [
-                    { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
-                    {
-                        text: 'ΝΑΙ', onPress: async () => {
-                            let result = await revealLetter(crosswordData);
-                            console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
-                            if (!result.helped) {
-                                alert('Χρειάζεστε 100 πόντους');
-                            } else {
-                                await updateUserInfo();
-                                console.log(`Updated authState is ${JSON.stringify(authState)}`);
-                            }
+            if (Platform.OS === 'web') {
+                const confirm = window.confirm('Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ');
+                if (confirm) {
+                    let result = await revealLetter(crosswordData);
+                    console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                    if (!result.helped) {
+                        alert('Χρειάζεστε 100 πόντους');
+                    } else {
+                        await updateUserInfo();
+                        if (authState.info) {
+                            await updateCrosswordHelp(crosswordData);
                         }
-                    },
-                ],
-                { cancelable: false }
-            );
+                        console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                    }
+                }
+            } else {
+                Alert.alert(
+                    'Αποκάλυψη Γράμματος',
+                    'Θα χρησιμοποιήσεις 100 πόντους για την αποκάλυψη ενός γράμματος. ΝΑΙ ή ΟΧΙ',
+                    [
+                        { text: 'ΟΧΙ', onPress: () => { }, style: 'cancel' },
+                        {
+                            text: 'ΝΑΙ', onPress: async () => {
+                                let result = await revealLetter(crosswordData);
+                                console.log(`triggerRevealLetter result is ${JSON.stringify(result)}`);
+                                if (!result.helped) {
+                                    alert('Χρειάζεστε 100 πόντους');
+                                } else {
+                                    await updateUserInfo();
+                                    if (authState.info) {
+                                        await updateCrosswordHelp(crosswordData);
+                                    }
+                                    console.log(`Updated authState is ${JSON.stringify(authState)}`);
+                                }
+                            }
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            }
         } catch (error) {
             console.error('Error revealing letter:', error);
         }
     };
-
     const showModal = () => {
-        // await updateUserInfo();
         setModalVisible(true);
         Animated.timing(fadeAnim, {
             toValue: 1,
@@ -203,14 +184,57 @@ const GameScreen = ({ navigation }) => {
         });
     };
 
+    const checkWordMatch = async () => {
+        for (const word of crosswordState.crosswordData.words) {
+            let update = false;
+            if (word.text === keyboardData && (!word.found && word.placed)) {
+                if (word.placed == true) {
+                    word.found = true;
+                    update = true;
+                }
+            }
+            if (word.text === keyboardData && !word.extraFound && !word.placed) {
+                alert('Επιπλέον λέξη βρέθηκε: ' + keyboardData);
+                word.extraFound = true;
+                update = true;
+            }
+            if (update) {
+                crosswordState.crosswordData.info.time = elapsedTime;
+                let response = await updateCrossword(crosswordState.crosswordData);
+                console.log(`updateCrossword response is ${JSON.stringify(response)}`);
+                if (response && response.levelInfo) {
+                    crosswordState.crosswordData.info.time = response.crossword.info.time;
+                    setLevelInfo(response.levelInfo);
+                }
+                if (crosswordState.crosswordData.words.filter(word => word.placed).every(word => word.found)) {
+                    console.log('All words found');
+                    showModal();
+                    console.log('Modal shown');
+                    resetTimer();
+                    console.log('Timer reset');
+                    updateUserInfo();
+                    console.log('User info updated');
+                    triggerRefresh();
+                    console.log('Refresh triggered');
+                }
+                triggerPlayerInfoRefresh();
+                clearKeyboardData();
+            }
+        }
+    };
+    const getNextLevelElo = (currentElo) => {
+        const currentLevel = levels.find(level => currentElo >= level.minElo && currentElo <= level.maxElo);
+        const nextLevel = levels.find(level => level.level === currentLevel.level + 1);
+        return nextLevel ? nextLevel.minElo : null;
+    };
     if (loading) {
         return (
             <SafeAreaProvider forceInset={{ top: 'always' }}>
                 <ImageBackground
-                    source={image}
+                    source={isDesktop ? require('../../assets/santorini2.png') : require('../../assets/santorini.png')}
                     style={styles.image}>
                     <View style={styles.wordContainer}>
-                        <Text style={styles.loading}>Loading...</Text>
+                        <Text style={styles.loading}>Παρακαλώ περιμένετε, φτιάχνουμε ένα σταυρόλεξο ακριβώς στα μέτρα σας</Text>
                     </View>
                 </ImageBackground>
             </SafeAreaProvider>);
@@ -232,40 +256,46 @@ const GameScreen = ({ navigation }) => {
         return `${minutes} λεπτά και ${remainingSeconds} δευτερόλεπτα`;
     };
 
+    const formatTime2 = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes} min ${remainingSeconds} sec`;
+    };
+
     return (
         <SafeAreaProvider forceInset={{ top: 'always' }}>
             <ImageBackground
-                source={image}
+                source={isDesktop ? require('../../assets/santorini2.png') : require('../../assets/santorini.png')}
                 style={styles.image}>
-                {/* <PointsLayout style={styles.points} icon="star" points={authState.info.points} /> */}
-                <PointsLayout style={styles.points} icon="star" points={100} />
+                {authState.info && (
+                    <PointsLayout style={styles.points} icon="star" points={authState.info.points} />
+                )}
                 <CircleIcon style={styles.settings} icon="settings" onPress={() => navigation.navigate('Settings')} />
                 <View style={styles.wordContainer}>
-                    {
-                        grid.map((rowData, index) => {
-                            return (
-                                <View key={index} style={styles.wordRow}>
-                                    {
-                                        rowData.map((cellData, cellIndex) => {
-                                            const borderStyle = cellData ? { borderWidth: 2, borderColor: 'white', borderRadius: 5 } : {};
-                                            return (
-                                                <View key={cellIndex} style={[styles.cell, borderStyle]}>
-                                                    <Text style={styles.text}>{cellData}</Text>
-                                                </View>
-                                            );
-                                        })
-                                    }
-                                </View>
-                            );
-                        })
-                    }
+                    {grid && grid.map((rowData, index) => (
+                        <View key={index} style={styles.wordRow}>
+                            {rowData.map((cellData, cellIndex) => {
+                                const borderStyle = cellData ? { borderWidth: 2, borderColor: 'white', borderRadius: 5, opacity: 0.9 } : { opacity: 0.9 };
+                                return (
+                                    <View key={cellIndex} style={[styles.cell, borderStyle]}>
+                                        <Text style={styles.text}>{cellData}</Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    ))}
                 </View>
                 <View style={styles.circleView}>
                     <View style={styles.deleteContainer}>
-                        <Text style={styles.text}>
-                            {keyboardData ? keyboardData : "Επιλέξτε γράμμα"}
-                        </Text>
-                        <CircleIcon style={styles.delete} icon="delete" onPress={clearKeayboardData} />
+                        <View style={styles.textContainer}>
+                            <Text style={styles.text}>
+                                {keyboardData ? keyboardData : "Επιλέξτε γράμμα"}
+                            </Text>
+                        </View>
+                        {state.keyboardData && state.keyboardData.length >= 3 && (
+                            <CircleIcon style={styles.delete} icon="search" onPress={checkWordMatch} />
+                        )}
+                        <CircleIcon style={styles.delete} icon="delete" onPress={clearKeyboardData} />
                     </View>
                     <CircleIcon style={styles.lightbulb} icon="lightbulb" onPress={() => triggerRevealLetter(crosswordState.crosswordData)} />
                     <CircleKeyboard keys={keys}>
@@ -278,6 +308,7 @@ const GameScreen = ({ navigation }) => {
                             <Text style={styles.modalText}>Σε ένα σταυρόλεξο με σκορ {levelInfo.score} σε χρόνο {formatTime(levelInfo.time)}</Text>
                             {levelInfo && <Text style={styles.modalText}>Από elo: {parseInt(levelInfo.oldElo)} σε elo: {parseInt(levelInfo.newElo)}</Text>}
                             {levelInfo && <Text style={styles.modalText}>Από επίπεδο: {levelInfo.oldLevel} σε επίπεδο: {levelInfo.newLevel}</Text>}
+                            {levelInfo && <Text style={styles.modalText}>Χρειάζεστε {getNextLevelElo(levelInfo.newElo) - levelInfo.newElo} ELO για το επόμενο επίπεδο</Text>}
                             <TouchableOpacity onPress={hideModal}>
                                 <Text style={styles.modalButton}>OK</Text>
                             </TouchableOpacity>
@@ -285,7 +316,7 @@ const GameScreen = ({ navigation }) => {
                     </Animated.View>
                 )}
                 <View style={styles.timerContainer}>
-                    <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+                    <Text style={styles.timerText}>{formatTime2(elapsedTime)}</Text>
                 </View>
             </ImageBackground>
         </SafeAreaProvider>
@@ -340,33 +371,5 @@ const updateGridWithFoundWords = (grid, words) => {
         }
     });
 };
-
-const modalStyles = StyleSheet.create({
-    modal: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalText: {
-        fontSize: 18,
-        marginBottom: 20,
-    },
-    modalButton: {
-        fontSize: 16,
-        color: 'blue',
-    },
-});
 
 export default GameScreen;

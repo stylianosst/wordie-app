@@ -10,9 +10,12 @@ cd windows-app
 npm init -y
 npm install electron electron-builder --save-dev
 npm start
-in html of exported web with remove defer from the script tag
+in html of exported web with remove defer from the script tag and remove / from script link on expo index.html(dist)
+copy dist assets folder to C://assets
 npm install -g electron-packager
 npx electron-packager . MyApp --platform=win32 --arch=x64 --out=dist --overwrite
+after put C:\Users\styli\OneDrive\Documents\Projects\wordie-app\windows-app\dist\MyApp-win32-x64\resources\app
+the dist of the web file
 
 
 

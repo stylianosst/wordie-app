@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.25)', // Semi-transparent background
         padding: 10,
         borderRadius: 5,
+        marginBottom: 5,
         // shadowColor: '#000',
         // shadowOffset: { width: 0, height: 2 },
         // shadowOpacity: 0.8,
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     wordContainer: {
-        top: 35,
+        top: 40,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -108,10 +109,13 @@ const styles = StyleSheet.create({
     modalText: {
         fontSize: 18,
         marginBottom: 20,
+        textAlign: 'center',
     },
     modalButton: {
         fontSize: 16,
-        color: 'blue',
+        color: 'rgba(0, 0, 0, 0.7)',
+        padding: 5,
+        marginTop : 10,
     },
     timerContainer: {
         position: 'absolute',
@@ -124,6 +128,25 @@ const styles = StyleSheet.create({
     timerText: {
         color: 'white',
         fontSize: 16,
+    },
+    progressBarContainer: {
+        width: '100%',
+        height: 20,
+        backgroundColor: '#e0e0e0',
+        borderRadius: 10,
+        overflow: 'hidden',
+        marginTop: 10,
+    },
+    progressBar: {
+        height: '100%',
+        backgroundColor: '#42c957',
+    },
+    progressText: {
+        position: 'absolute',
+        width: '100%',
+        textAlign: 'center',
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
 

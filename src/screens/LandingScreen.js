@@ -3,7 +3,6 @@ import { View, Text, Button, ImageBackground, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import styles from '../styles/LandingScreenStyles';
 import CircleIcon from '../components/CircleIcon';
-// import image from '../../assets/landing.png'; // Import the image
 
 const LandingScreen = ({ navigation }) => {
     const isDesktop = Platform.OS === 'web';

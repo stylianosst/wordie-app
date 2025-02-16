@@ -2,6 +2,7 @@
 /node_modules/
 .expo/
 dist/
+windows-app/
 web-build/
 /%ProgramData%/
 .vscode

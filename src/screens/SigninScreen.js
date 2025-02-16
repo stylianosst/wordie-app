@@ -1,11 +1,12 @@
 import React, { useContext, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AuthForm from '../components/AuthForm';
 import NavLink from '../components/NavLink';
 import { Context } from '../context/AuthContext';
 
 const SigninScreen = () => {
+  const isDesktop = Platform.OS === 'web';
   const { state, signin, clearErrorMessage } = useContext(Context);
   useFocusEffect(
     useCallback(() => {
@@ -13,7 +14,7 @@ const SigninScreen = () => {
     }, [])
   );
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDesktop && styles.desktopContainer]}>
       <AuthForm
         headerText="Συνδεθείτε στο Wordie"
         errorMessage={state.errorMessage}
@@ -38,6 +39,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     marginBottom: 50,
+  },
+  desktopContainer: {
+    width: '50%',
+    alignSelf: 'center',
   },
 });
 

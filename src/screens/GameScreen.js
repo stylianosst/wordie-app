@@ -8,6 +8,7 @@ import { Context as AuthContext } from '../context/AuthContext';
 import CircleIcon from '../components/CircleIcon';
 import PointsLayout from '../components/PointsLayout';
 import styles from '../styles/GameScreenStyles';
+import { levels } from '../services/lettersService';
 
 const image = { uri: 'https://www.planetware.com/wpimages/2020/02/greece-in-pictures-beautfiul-places-to-photograph-santorini-oia.jpg' };
 
@@ -221,7 +222,14 @@ const GameScreen = ({ navigation }) => {
             }
         }
     };
-
+    const getNextLevelElo = (currentElo) => {
+        const currentLevel = levels.find(level => currentElo >= level.minElo && currentElo <= level.maxElo);
+        const nextLevel = levels.find(level => level.level === currentLevel.level + 1);
+        return nextLevel ? parseInt(nextLevel.minElo) : null;
+    };
+    const getProgress = (currentElo, nextLevelElo) => {
+        return parseInt((currentElo / nextLevelElo) * 100);
+    };
     if (loading) {
         return (
             <SafeAreaProvider forceInset={{ top: 'always' }}>
@@ -303,6 +311,13 @@ const GameScreen = ({ navigation }) => {
                             <Text style={styles.modalText}>Σε ένα σταυρόλεξο με σκορ {levelInfo.score} σε χρόνο {formatTime(levelInfo.time)}</Text>
                             {levelInfo && <Text style={styles.modalText}>Από elo: {parseInt(levelInfo.oldElo)} σε elo: {parseInt(levelInfo.newElo)}</Text>}
                             {levelInfo && <Text style={styles.modalText}>Από επίπεδο: {levelInfo.oldLevel} σε επίπεδο: {levelInfo.newLevel}</Text>}
+                            {levelInfo && <Text style={styles.modalText}>Χρειάζεστε {parseInt(getNextLevelElo(levelInfo.newElo) - levelInfo.newElo + 1)} ELO για το επόμενο επίπεδο</Text>}
+                            {levelInfo && (
+                                <View style={styles.progressBarContainer}>
+                                    <View style={[styles.progressBar, { width: `${getProgress(levelInfo.newElo, getNextLevelElo(levelInfo.newElo))}%` }]} />
+                                    <Text style={styles.progressText}>{parseInt(levelInfo.newElo)} / {getNextLevelElo(levelInfo.newElo)}</Text>
+                                </View>
+                            )}
                             <TouchableOpacity onPress={hideModal}>
                                 <Text style={styles.modalButton}>OK</Text>
                             </TouchableOpacity>
