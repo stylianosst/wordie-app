@@ -2,8 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-    baseURL: 'https://7d54-37-98-198-79.ngrok-free.app',
-    // baseURL: 'https://wordie-api.vercel.app/',
+    // baseURL: 'https://7d54-37-98-198-79.ngrok-free.app',
+    baseURL: 'https://wordie-api.vercel.app/',
 });
 
 api.interceptors.request.use(
