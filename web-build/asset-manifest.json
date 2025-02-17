@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.js": "/static/js/main.335ddecc.js",
+    "static/js/144.5f08460d.js": "/static/js/144.5f08460d.js",
+    "static/media/landing.png": "/static/media/landing.b6362b7c8c31b0a9e518.png",
+    "static/media/santorini2.png": "/static/media/santorini2.4cb469de1b0757debde4.png",
+    "static/media/landing2.png": "/static/media/landing2.ba1e6c00e0238fb65f56.png",
+    "static/media/santorini.png": "/static/media/santorini.05e915ac2b9d48caa79e.png",
+    "favicon.ico": "/favicon.ico",
+    "index.html": "/index.html",
+    "static/media/rocket.png": "/static/media/rocket.d2f3bf41d5e4515c39a9.png",
+    "static/media/bell.png": "/static/media/bell.cf04af27d6a651c4b904.png",
+    "favicon-32.png": "/favicon-32.png",
+    "static/media/star.png": "/static/media/star.69c7138684828d68fe5a.png",
+    "static/media/heart.png": "/static/media/heart.23b5c2c0eb77d50ff1b4.png",
+    "favicon-16.png": "/favicon-16.png",
+    "manifest.json": "/manifest.json",
+    "serve.json": "/serve.json",
+    "main.335ddecc.js.map": "/static/js/main.335ddecc.js.map",
+    "144.5f08460d.js.map": "/static/js/144.5f08460d.js.map"
+  },
+  "entrypoints": [
+    "static/js/144.5f08460d.js",
+    "static/js/main.335ddecc.js"
+  ]
+}

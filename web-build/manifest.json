@@ -1,0 +1,17 @@
+{
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "lang": "en",
+  "name": "wordie",
+  "short_name": "wordie",
+  "start_url": "/?utm_source=web_app_manifest",
+  "orientation": "portrait",
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "http://play.google.com/store/apps/details?id=com.stylianosst.wordie",
+      "id": "com.stylianosst.wordie"
+    }
+  ],
+  "prefer_related_applications": true
+}
