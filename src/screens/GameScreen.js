@@ -51,10 +51,12 @@ const GameScreen = ({ navigation }) => {
 
     useEffect(() => {
         const startTimer = () => {
+            if (crosswordState.crosswordData && crosswordState.crosswordData.info) {
             const startTime = Date.now() - (crosswordState.crosswordData.info.time * 1000);
             setTimer(setInterval(() => {
                 setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
             }, 1000));
+            }
         };
 
         const stopTimer = () => {
@@ -86,10 +88,12 @@ const GameScreen = ({ navigation }) => {
                     setTimer(null);
                 }
             } else if (nextAppState === 'active') {
+                if (crosswordState.crosswordData && crosswordState.crosswordData.info) {
                 const startTime = Date.now() - (crosswordState.crosswordData.info.time * 1000);
                 setTimer(setInterval(() => {
                     setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
                 }, 1000));
+                }
             }
         };
 
